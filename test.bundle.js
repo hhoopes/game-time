@@ -65,6 +65,10 @@
 
 	'use strict';
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	var lifeCounter = 0;
 	var Sushi = __webpack_require__(2);
 	var Trash = __webpack_require__(3);
@@ -78,127 +82,152 @@
 	var sprites = [];
 	var points = 0;
 	var endingFrames = 0;
+	var boom_sound = document.getElementById("boom-sound");
 
-	function Game() {}
-
-	Game.prototype.calculateSpawnTime = function (rate, minSpeed, maxSpeed, gameTimer) {
-	  return Math.max(rate * gameTimer + maxSpeed, minSpeed);
-	};
-
-	Game.prototype.calculateSpeed = function (rate, minSpeed, maxSpeed, gameTimer) {
-	  return Math.min(rate * gameTimer + minSpeed, maxSpeed);
-	};
-
-	Game.prototype.moveCat = function (event, nyanCat) {
-	  if (event.keyCode === 38) {
-	    nyanCat.moveUp();
-	  } else if (event.keyCode === 40) {
-	    nyanCat.moveDown();
+	var Game = function () {
+	  function Game() {
+	    _classCallCheck(this, Game);
 	  }
-	  return nyanCat;
-	};
 
-	Game.prototype.clearCanvas = function (context, canvas) {
-	  context.clearRect(0, 0, canvas.width, canvas.height);
-	};
-
-	Game.prototype.drawHeartsCatAndBombs = function (nyanCat, hearts, bombs) {
-	  draw.drawCollection(hearts);
-	  draw.drawCollection(bombs);
-	  draw.drawCat(nyanCat);
-	};
-
-	Game.prototype.writePoints = function (context) {
-	  context.font = "30px VT323";
-	  context.fillStyle = "magenta";
-	  context.fillText("Points: " + points, 20, 40);
-	};
-
-	Game.prototype.makeObject = function (context) {
-	  var number = Math.random();
-	  if (number > 0.5) {
-	    var sushi = new Sushi({ context: context });
-	    sushi.x = 600;
-	    sprites.push(sushi);
-	  } else {
-	    var trash = new Trash({ context: context });
-	    sprites.push(trash);
-	  }
-	  return sprites;
-	};
-
-	Game.prototype.refreshSprites = function (nyanCat, speed, hearts, bomb, boom) {
-	  var survivors = [];
-
-	  if (bomb) {
-	    draw.drawObject(boom);
-	  } else {
-	    survivors = this.moveSprites(nyanCat, speed, hearts, survivors);
-	  }
-	  sprites = survivors;
-	};
-
-	Game.prototype.moveSprites = function (nyanCat, speed, hearts, survivors) {
-	  for (var i = 0; i < sprites.length; i++) {
-	    var currentObject = sprites[i];
-	    currentObject.move(speed);
-
-	    if (helpers.checkCollision(currentObject, nyanCat)) {
-	      var outcome = helpers.determineObject(currentObject, lifeCounter, hearts, points);
-	      lifeCounter = outcome[0];
-	      points = outcome[1];
-	    } else if (!helpers.offScreen(currentObject)) {
-	      survivors.push(currentObject);
-	      draw.drawObject(currentObject);
+	  _createClass(Game, [{
+	    key: 'calculateSpawnTime',
+	    value: function calculateSpawnTime(rate, minSpeed, maxSpeed, gameTimer) {
+	      return Math.max(rate * gameTimer + maxSpeed, minSpeed);
 	    }
-	  }
-	  return survivors;
-	};
+	  }, {
+	    key: 'calculateSpeed',
+	    value: function calculateSpeed(rate, minSpeed, maxSpeed, gameTimer) {
+	      return Math.min(rate * gameTimer + minSpeed, maxSpeed);
+	    }
+	  }, {
+	    key: 'moveCat',
+	    value: function moveCat(event, nyanCat) {
+	      if (event.keyCode === 38) {
+	        nyanCat.moveUp();
+	      } else if (event.keyCode === 40) {
+	        nyanCat.moveDown();
+	      }
+	      return nyanCat;
+	    }
+	  }, {
+	    key: 'clearCanvas',
+	    value: function clearCanvas(context, canvas) {
+	      context.clearRect(0, 0, canvas.width, canvas.height);
+	    }
+	  }, {
+	    key: 'drawHeartsCatAndBombs',
+	    value: function drawHeartsCatAndBombs(nyanCat, hearts, bombs) {
+	      draw.drawCollection(hearts);
+	      draw.drawCollection(bombs);
+	      draw.drawCat(nyanCat);
+	    }
+	  }, {
+	    key: 'writePoints',
+	    value: function writePoints(context) {
+	      context.font = "30px VT323";
+	      context.fillStyle = "magenta";
+	      context.fillText("Points: " + points, 20, 40);
+	    }
+	  }, {
+	    key: 'makeObject',
+	    value: function makeObject(context) {
+	      var number = Math.random();
+	      if (number > 0.5) {
+	        var sushi = new Sushi({ context: context });
+	        sushi.x = 600;
+	        sprites.push(sushi);
+	      } else {
+	        var trash = new Trash({ context: context });
+	        sprites.push(trash);
+	      }
+	      return sprites;
+	    }
+	  }, {
+	    key: 'refreshSprites',
+	    value: function refreshSprites(nyanCat, speed, hearts, bomb, boom) {
+	      var survivors = [];
 
-	Game.prototype.determineContinue = function (gameLoop, context, canvas, hearts) {
-	  if (lifeCounter < 3) {
-	    requestAnimationFrame(gameLoop);
-	  } else {
-	    endingFrames++;
-	    this.endGame(gameLoop, context, canvas, hearts);
-	  }
-	};
+	      if (bomb) {
+	        helpers.playCollisionSound(boom_sound);
+	        draw.drawObject(boom);
+	      } else {
+	        survivors = this.moveSprites(nyanCat, speed, hearts, survivors);
+	      }
+	      sprites = survivors;
+	    }
+	  }, {
+	    key: 'moveSprites',
+	    value: function moveSprites(nyanCat, speed, hearts, survivors) {
+	      for (var i = 0; i < sprites.length; i++) {
+	        var currentObject = sprites[i];
+	        currentObject.move(speed);
 
-	Game.prototype.endGame = function (gameLoop, context, canvas, hearts) {
-	  if (endingFrames < 25) {
-	    requestAnimationFrame(gameLoop);
-	  } else {
-	    scoreboard.showHighScoreEntry(points);
-	    this.clearCanvas(context, canvas);
-	    this.showGameOverScreen();
-	    this.resetGame(hearts);
-	  }
-	};
+	        if (helpers.checkCollision(currentObject, nyanCat)) {
+	          var outcome = helpers.determineObject(currentObject, lifeCounter, hearts, points);
+	          lifeCounter = outcome[0];
+	          points = outcome[1];
+	        } else if (!helpers.offScreen(currentObject)) {
+	          survivors.push(currentObject);
+	          draw.drawObject(currentObject);
+	        }
+	      }
+	      return survivors;
+	    }
+	  }, {
+	    key: 'determineContinue',
+	    value: function determineContinue(gameLoop, context, canvas, hearts) {
+	      if (lifeCounter < 3) {
+	        requestAnimationFrame(gameLoop);
+	      } else {
+	        endingFrames++;
+	        this.endGame(gameLoop, context, canvas, hearts);
+	      }
+	    }
+	  }, {
+	    key: 'endGame',
+	    value: function endGame(gameLoop, context, canvas, hearts) {
+	      if (endingFrames < 25) {
+	        requestAnimationFrame(gameLoop);
+	      } else {
+	        scoreboard.showHighScoreEntry(points);
+	        this.clearCanvas(context, canvas);
+	        this.showGameOverScreen();
+	        this.resetGame(hearts);
+	      }
+	    }
+	  }, {
+	    key: 'resetGame',
+	    value: function resetGame(hearts) {
+	      lifeCounter = 0;
+	      endingFrames = 0;
+	      sprites = [];
+	      for (var i = 0; i < hearts.length; i++) {
+	        hearts[i].image = document.getElementById("full-heart");
+	      }
+	      return [lifeCounter, endingFrames, sprites];
+	    }
+	  }, {
+	    key: 'showGameOverScreen',
+	    value: function showGameOverScreen() {
+	      $("#game-over-screen").fadeIn();
+	      $('#player-score').text("Your score: " + points);
+	      $("#canvas-elements").hide();
+	    }
+	  }, {
+	    key: 'sendHighScore',
+	    value: function sendHighScore() {
+	      scoreboard.sendHighScore(points);
+	    }
+	  }, {
+	    key: 'resetPoints',
+	    value: function resetPoints() {
+	      points = 0;
+	      return points;
+	    }
+	  }]);
 
-	Game.prototype.resetGame = function (hearts) {
-	  lifeCounter = 0;
-	  endingFrames = 0;
-	  sprites = [];
-	  for (var i = 0; i < hearts.length; i++) {
-	    hearts[i].image = document.getElementById("full-heart");
-	  }
-	  return [lifeCounter, endingFrames, sprites];
-	};
-
-	Game.prototype.showGameOverScreen = function () {
-	  $("#game-over-screen").fadeIn();
-	  $('#player-score').text("Your score: " + points);
-	  $("#canvas-elements").hide();
-	};
-
-	Game.prototype.sendHighScore = function () {
-	  scoreboard.sendHighScore(points);
-	};
-
-	Game.prototype.resetPoints = function () {
-	  points = 0;
-	  return points;
-	};
+	  return Game;
+	}();
 
 	module.exports = Game;
 
@@ -208,25 +237,38 @@
 
 	'use strict';
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	var eggRoll = document.getElementById('egg-roll');
 	var roeRoll = document.getElementById('roe-roll');
 	var fishRoll = document.getElementById('fish-roll');
 	var pictures = [eggRoll, roeRoll, fishRoll];
 
-	function Sushi(options) {
-	  var rowsForSprites = [70, 170, 270, 370];
-	  this.image = pictures[Math.floor(Math.random() * pictures.length)];
-	  this.width = 70;
-	  this.height = 58;
-	  this.x = 600;
-	  this.y = rowsForSprites[Math.floor(Math.random() * rowsForSprites.length)];
-	  this.context = options.context || {};
-	}
+	var Sushi = function () {
+	  function Sushi(options) {
+	    _classCallCheck(this, Sushi);
 
-	Sushi.prototype.move = function (speed) {
-	  this.x -= speed;
-	  return this;
-	};
+	    var rowsForSprites = [70, 170, 270, 370];
+	    this.image = pictures[Math.floor(Math.random() * pictures.length)];
+	    this.width = 70;
+	    this.height = 58;
+	    this.x = 600;
+	    this.y = rowsForSprites[Math.floor(Math.random() * rowsForSprites.length)];
+	    this.context = options.context || {};
+	  }
+
+	  _createClass(Sushi, [{
+	    key: 'move',
+	    value: function move(speed) {
+	      this.x -= speed;
+	      return this;
+	    }
+	  }]);
+
+	  return Sushi;
+	}();
 
 	module.exports = Sushi;
 
@@ -236,24 +278,37 @@
 
 	'use strict';
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	var poop = document.getElementById('kawaii-poop');
 	var toaster = document.getElementById('kawaii-toaster');
 	var pictures = [poop, toaster];
 
-	function Trash(options) {
-	  var rowsForTrash = [70, 170, 270, 370, 70, 270, 370];
-	  this.image = pictures[Math.floor(Math.random() * pictures.length)];
-	  this.width = 70;
-	  this.height = 58;
-	  this.x = 600;
-	  this.y = rowsForTrash[Math.floor(Math.random() * rowsForTrash.length)];
-	  this.context = options.context || {};
-	}
+	var Trash = function () {
+	  function Trash(options) {
+	    _classCallCheck(this, Trash);
 
-	Trash.prototype.move = function (speed) {
-	  this.x -= speed;
-	  return this;
-	};
+	    var rowsForTrash = [70, 170, 270, 370, 70, 270, 370];
+	    this.image = pictures[Math.floor(Math.random() * pictures.length)];
+	    this.width = 70;
+	    this.height = 58;
+	    this.x = 600;
+	    this.y = rowsForTrash[Math.floor(Math.random() * rowsForTrash.length)];
+	    this.context = options.context || {};
+	  }
+
+	  _createClass(Trash, [{
+	    key: 'move',
+	    value: function move(speed) {
+	      this.x -= speed;
+	      return this;
+	    }
+	  }]);
+
+	  return Trash;
+	}();
 
 	module.exports = Trash;
 
@@ -263,65 +318,84 @@
 
 	"use strict";
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	var meow = document.getElementById("cat-meow");
 	var ding = document.getElementById("ding");
 
-	function Helpers() {}
-
-	Helpers.prototype.addPoints = function (points, addedPoints) {
-	  points += addedPoints;
-	  return points;
-	};
-
-	Helpers.prototype.loseHeart = function (hearts, lifeCounter) {
-	  hearts[lifeCounter].image = document.getElementById("empty-heart");
-	  document.getElementById("starfield").style.background = 'rgba(255, 0, 0, 0.5)';
-	  lifeCounter++;
-	  return lifeCounter;
-	};
-
-	Helpers.prototype.checkCollision = function (currentObject, nyanCat) {
-	  var nyanCatStartX = nyanCat.x + nyanCat.width / 2;
-	  var nyanCatStartY = nyanCat.y;
-	  var nyanCatLength = nyanCatStartX + (nyanCat.width - 70);
-	  var nyanCatHeight = nyanCatStartY + nyanCat.height;
-
-	  var objectStartX = currentObject.x;
-	  var objectStartY = currentObject.y;
-	  var objectLength = currentObject.x + currentObject.width;
-	  var objectHeight = currentObject.y + currentObject.height;
-
-	  return nyanCatStartX < objectLength && nyanCatLength > objectStartX && nyanCatStartY < objectHeight && nyanCatHeight > objectStartY;
-	};
-
-	Helpers.prototype.offScreen = function (currentObject) {
-	  return currentObject.x < -70;
-	};
-
-	Helpers.prototype.determineObject = function (currentObject, lifeCounter, hearts, points) {
-	  if (currentObject.constructor.name === "Sushi") {
-	    points = this.addPoints(points, 30);
-	    playCollisionSound(ding);
-	  } else if (currentObject.constructor.name === "Trash") {
-	    lifeCounter = this.checkLoseHeart(lifeCounter, hearts);
-	    playCollisionSound(meow);
+	var Helpers = function () {
+	  function Helpers() {
+	    _classCallCheck(this, Helpers);
 	  }
-	  return [lifeCounter, points];
-	};
 
-	function playCollisionSound(sound) {
-	  if (sound) {
-	    sound.pause();
-	    sound.currentTime = 0;
-	    sound.play();
-	  }
-	}
+	  _createClass(Helpers, [{
+	    key: "addPoints",
+	    value: function addPoints(points, addedPoints) {
+	      points += addedPoints;
+	      return points;
+	    }
+	  }, {
+	    key: "loseHeart",
+	    value: function loseHeart(hearts, lifeCounter) {
+	      hearts[lifeCounter].image = document.getElementById("empty-heart");
+	      document.getElementById("starfield").style.background = 'rgba(255, 0, 0, 0.5)';
+	      lifeCounter++;
+	      return lifeCounter;
+	    }
+	  }, {
+	    key: "checkCollision",
+	    value: function checkCollision(currentObject, nyanCat) {
+	      var nyanCatStartX = nyanCat.x + nyanCat.width / 2;
+	      var nyanCatStartY = nyanCat.y;
+	      var nyanCatLength = nyanCatStartX + (nyanCat.width - 70);
+	      var nyanCatHeight = nyanCatStartY + nyanCat.height;
 
-	Helpers.prototype.checkLoseHeart = function (lifeCounter, hearts) {
-	  if (lifeCounter < 3) {
-	    return lifeCounter = this.loseHeart(hearts, lifeCounter);
-	  }
-	};
+	      var objectStartX = currentObject.x;
+	      var objectStartY = currentObject.y;
+	      var objectLength = currentObject.x + currentObject.width;
+	      var objectHeight = currentObject.y + currentObject.height;
+
+	      return nyanCatStartX < objectLength && nyanCatLength > objectStartX && nyanCatStartY < objectHeight && nyanCatHeight > objectStartY;
+	    }
+	  }, {
+	    key: "offScreen",
+	    value: function offScreen(currentObject) {
+	      return currentObject.x < -70;
+	    }
+	  }, {
+	    key: "determineObject",
+	    value: function determineObject(currentObject, lifeCounter, hearts, points) {
+	      if (currentObject.constructor.name === "Sushi") {
+	        points = this.addPoints(points, 30);
+	        this.playCollisionSound(ding);
+	      } else if (currentObject.constructor.name === "Trash") {
+	        lifeCounter = this.checkLoseHeart(lifeCounter, hearts);
+	        this.playCollisionSound(meow);
+	      }
+	      return [lifeCounter, points];
+	    }
+	  }, {
+	    key: "playCollisionSound",
+	    value: function playCollisionSound(sound) {
+	      if (sound) {
+	        sound.pause();
+	        sound.currentTime = 0;
+	        sound.play();
+	      }
+	    }
+	  }, {
+	    key: "checkLoseHeart",
+	    value: function checkLoseHeart(lifeCounter, hearts) {
+	      if (lifeCounter < 3) {
+	        return lifeCounter = this.loseHeart(hearts, lifeCounter);
+	      }
+	    }
+	  }]);
+
+	  return Helpers;
+	}();
 
 	module.exports = Helpers;
 
@@ -330,6 +404,10 @@
 /***/ function(module, exports) {
 
 	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var nyan1 = document.getElementById('nyan-1');
 	var nyan2 = document.getElementById('nyan-2');
@@ -347,42 +425,55 @@
 	var frameCount = 0;
 	var lastFrameTime = 0;
 
-	function Draw() {}
-
-	Draw.prototype.drawObject = function (object) {
-	  object.context.drawImage(object.image, object.x, object.y);
-	  return object;
-	};
-
-	Draw.prototype.drawCollection = function (collection) {
-	  for (var i = 0; i < collection.length; i++) {
-	    this.drawObject(collection[i]);
+	var Draw = function () {
+	  function Draw() {
+	    _classCallCheck(this, Draw);
 	  }
-	};
 
-	Draw.prototype.drawCat = function (cat) {
-	  var now = Date.now();
-	  var elapsed = now - lastFrameTime;
-	  var frame = nyanFrames[frameCount];
-	  this.checkNewFrame(elapsed, now);
-	  cat.context.drawImage(frame, cat.x, cat.y);
-	  this.resetFrameCount();
-	};
+	  _createClass(Draw, [{
+	    key: 'drawObject',
+	    value: function drawObject(object) {
+	      object.context.drawImage(object.image, object.x, object.y);
+	      return object;
+	    }
+	  }, {
+	    key: 'drawCollection',
+	    value: function drawCollection(collection) {
+	      for (var i = 0; i < collection.length; i++) {
+	        this.drawObject(collection[i]);
+	      }
+	    }
+	  }, {
+	    key: 'drawCat',
+	    value: function drawCat(cat) {
+	      var now = Date.now();
+	      var elapsed = now - lastFrameTime;
+	      var frame = nyanFrames[frameCount];
+	      this.checkNewFrame(elapsed, now);
+	      cat.context.drawImage(frame, cat.x, cat.y);
+	      this.resetFrameCount();
+	    }
+	  }, {
+	    key: 'checkNewFrame',
+	    value: function checkNewFrame(elapsed, now) {
+	      if (elapsed > 75) {
+	        lastFrameTime = now;
+	        frameCount++;
+	      }
+	      return frameCount;
+	    }
+	  }, {
+	    key: 'resetFrameCount',
+	    value: function resetFrameCount() {
+	      if (frameCount === 12) {
+	        frameCount = 0;
+	      }
+	      return frameCount;
+	    }
+	  }]);
 
-	Draw.prototype.checkNewFrame = function (elapsed, now) {
-	  if (elapsed > 75) {
-	    lastFrameTime = now;
-	    frameCount++;
-	  }
-	  return frameCount;
-	};
-
-	Draw.prototype.resetFrameCount = function () {
-	  if (frameCount === 12) {
-	    frameCount = 0;
-	  }
-	  return frameCount;
-	};
+	  return Draw;
+	}();
 
 	module.exports = Draw;
 
@@ -391,6 +482,10 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var firebase = __webpack_require__(7);
 	__webpack_require__(9);
@@ -401,36 +496,47 @@
 	var ScoreboardHelpers = __webpack_require__(13);
 	var helpers = new ScoreboardHelpers();
 
-	function Scoreboard() {}
-
-	Scoreboard.prototype.showHighScoreEntry = function (points) {
-	  if (scoreboardRecords[4].points < points) {
-	    $('.scoreboard').hide();
-	    $('.high-score-entry').css('display', 'inline-block');
+	var Scoreboard = function () {
+	  function Scoreboard() {
+	    _classCallCheck(this, Scoreboard);
 	  }
-	};
 
-	Scoreboard.prototype.sendHighScore = function (points) {
-	  scoreboardRecords = helpers.addToScoreboardRecords(scoreboardRecords, points);
-	  fireDb.ref('highscore/').set({
-	    highscores: scoreboardRecords
-	  });
-	  event.preventDefault();
-	  $(".high-score-entry").hide();
-	  $('#username').val('');
-	  this.loadScoreboard();
-	  $('.scoreboard').show();
-	};
+	  _createClass(Scoreboard, [{
+	    key: 'showHighScoreEntry',
+	    value: function showHighScoreEntry(points) {
+	      if (scoreboardRecords[4].points < points) {
+	        $('.scoreboard').hide();
+	        $('.high-score-entry').css('display', 'inline-block');
+	      }
+	    }
+	  }, {
+	    key: 'sendHighScore',
+	    value: function sendHighScore(points) {
+	      scoreboardRecords = helpers.addToScoreboardRecords(scoreboardRecords, points);
+	      fireDb.ref('highscore/').set({
+	        highscores: scoreboardRecords
+	      });
+	      event.preventDefault();
+	      $(".high-score-entry").hide();
+	      $('#username').val('');
+	      this.loadScoreboard();
+	      $('.scoreboard').show();
+	    }
+	  }, {
+	    key: 'loadScoreboard',
+	    value: function loadScoreboard() {
+	      scoreboardRecords = [];
+	      $('#scoreboard-records').empty();
+	      fireDb.ref('highscore/').once('value').then(function (scores) {
+	        var allScores = helpers.sortScores(scores.val().highscores);
+	        scoreboardRecords = helpers.addScores(scoreboardRecords, allScores);
+	        helpers.renderScores(allScores, scoreboardRecords.length);
+	      });
+	    }
+	  }]);
 
-	Scoreboard.prototype.loadScoreboard = function () {
-	  scoreboardRecords = [];
-	  $('#scoreboard-records').empty();
-	  fireDb.ref('highscore/').once('value').then(function (scores) {
-	    var allScores = helpers.sortScores(scores.val().highscores);
-	    scoreboardRecords = helpers.addScores(scoreboardRecords, allScores);
-	    helpers.renderScores(allScores, scoreboardRecords.length);
-	  });
-	};
+	  return Scoreboard;
+	}();
 
 	module.exports = Scoreboard;
 
@@ -1415,10 +1521,10 @@
 	"use strict";
 
 	module.exports = {
-	  apiKey: "AIzaSyBOvdlImQTTCNTya9Q6HAX5jnamcffmBLM",
-	  authDomain: "nyan-cat-161f0.firebaseapp.com",
-	  databaseURL: "https://nyan-cat-161f0.firebaseio.com",
-	  storageBucket: ""
+	   apiKey: "AIzaSyBOvdlImQTTCNTya9Q6HAX5jnamcffmBLM",
+	   authDomain: "nyan-cat-161f0.firebaseapp.com",
+	   databaseURL: "https://nyan-cat-161f0.firebaseio.com",
+	   storageBucket: ""
 	};
 
 /***/ },
@@ -1427,44 +1533,61 @@
 
 	"use strict";
 
-	function ScoreboardHelpers() {}
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	ScoreboardHelpers.prototype.addToScoreboardRecords = function (scoreboardRecords, points) {
-	  var username = validateInput();
-	  scoreboardRecords.push({ username: username, points: points });
-	  return scoreboardRecords;
-	};
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function validateInput() {
-	  var rawUsername = $("#username").val() || "??????";
-	  var slicedUsername = rawUsername.slice(0, 17);
-	  if (slicedUsername.indexOf(">") !== -1) {
-	    slicedUsername = "Invalid Name";
+	var ScoreboardHelpers = function () {
+	  function ScoreboardHelpers() {
+	    _classCallCheck(this, ScoreboardHelpers);
 	  }
-	  return slicedUsername;
-	}
 
-	ScoreboardHelpers.prototype.renderScores = function (allScores, scoreboardLength) {
-	  for (var i = 0; i < scoreboardLength; i++) {
-	    $('#scoreboard-records').append(i + 1 + ". " + allScores[i].username + ": " + allScores[i].points + "<br>");
-	  }
-	};
-
-	ScoreboardHelpers.prototype.addScores = function (scoreboardRecords, allScores) {
-	  for (var i = 0; i < 5; i++) {
-	    if (allScores[i] !== undefined) {
-	      scoreboardRecords.push(allScores[i]);
+	  _createClass(ScoreboardHelpers, [{
+	    key: "addToScoreboardRecords",
+	    value: function addToScoreboardRecords(scoreboardRecords, points) {
+	      var username = this.validateInput();
+	      scoreboardRecords.push({ username: username, points: points });
+	      return scoreboardRecords;
 	    }
-	  }
-	  return scoreboardRecords;
-	};
+	  }, {
+	    key: "validateInput",
+	    value: function validateInput() {
+	      var rawUsername = $("#username").val() || "??????";
+	      var slicedUsername = rawUsername.slice(0, 17);
+	      if (slicedUsername.indexOf(">") !== -1) {
+	        slicedUsername = "Invalid Name";
+	      }
+	      return slicedUsername;
+	    }
+	  }, {
+	    key: "renderScores",
+	    value: function renderScores(allScores, scoreboardLength) {
+	      for (var i = 0; i < scoreboardLength; i++) {
+	        $('#scoreboard-records').append(i + 1 + ". " + allScores[i].username + ": " + allScores[i].points + "<br>");
+	      }
+	    }
+	  }, {
+	    key: "addScores",
+	    value: function addScores(scoreboardRecords, allScores) {
+	      for (var i = 0; i < 5; i++) {
+	        if (allScores[i] !== undefined) {
+	          scoreboardRecords.push(allScores[i]);
+	        }
+	      }
+	      return scoreboardRecords;
+	    }
+	  }, {
+	    key: "sortScores",
+	    value: function sortScores(scores) {
+	      var sortedScores = scores.sort(function (a, b) {
+	        return b.points - a.points;
+	      });
+	      return sortedScores;
+	    }
+	  }]);
 
-	ScoreboardHelpers.prototype.sortScores = function (scores) {
-	  var sortedScores = scores.sort(function (a, b) {
-	    return b.points - a.points;
-	  });
-	  return sortedScores;
-	};
+	  return ScoreboardHelpers;
+	}();
 
 	module.exports = ScoreboardHelpers;
 
@@ -1474,14 +1597,18 @@
 
 	"use strict";
 
-	function Heart(x, options) {
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Heart = function Heart(x, options) {
+	  _classCallCheck(this, Heart);
+
 	  this.image = document.getElementById("full-heart");
 	  this.width = 60;
 	  this.height = 60;
 	  this.x = x;
 	  this.y = 10;
 	  this.context = options.context || {};
-	}
+	};
 
 	module.exports = Heart;
 
@@ -1491,14 +1618,18 @@
 
 	"use strict";
 
-	function Bomb(x, options) {
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Bomb = function Bomb(x, options) {
+	  _classCallCheck(this, Bomb);
+
 	  this.image = document.getElementById("bomb");
 	  this.width = 50;
 	  this.height = 50;
 	  this.x = x;
 	  this.y = 8;
 	  this.context = options.context || {};
-	}
+	};
 
 	module.exports = Bomb;
 
@@ -1508,24 +1639,38 @@
 
 	"use strict";
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	var catDrawMinY = 70;
 	var catDrawMaxY = 370;
 
-	function Cat(options) {
-	  this.width = 140;
-	  this.height = 55;
-	  this.x = 0;
-	  this.y = 70;
-	  this.context = options.context || {};
-	}
+	var Cat = function () {
+	  function Cat(options) {
+	    _classCallCheck(this, Cat);
 
-	Cat.prototype.moveUp = function () {
-	  this.y = Math.max(catDrawMinY, this.y - 100);
-	};
+	    this.width = 140;
+	    this.height = 55;
+	    this.x = 0;
+	    this.y = 70;
+	    this.context = options.context || {};
+	  }
 
-	Cat.prototype.moveDown = function () {
-	  this.y = Math.min(catDrawMaxY, this.y + 100);
-	};
+	  _createClass(Cat, [{
+	    key: "moveUp",
+	    value: function moveUp() {
+	      this.y = Math.max(catDrawMinY, this.y - 100);
+	    }
+	  }, {
+	    key: "moveDown",
+	    value: function moveDown() {
+	      this.y = Math.min(catDrawMaxY, this.y + 100);
+	    }
+	  }]);
+
+	  return Cat;
+	}();
 
 	module.exports = Cat;
 
@@ -1535,49 +1680,66 @@
 
 	"use strict";
 
-	function Background(options) {
-	  this.starfield = options.starfield;
-	  this.starfieldCtx = options.starfieldCtx;
-	  this.canvas = options.canvas;
-	}
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	Background.prototype.randomStarsImage = function () {
-	  this.getStars();
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	  var img = document.createElement("img");
-	  img.src = this.starfield.toDataURL();
-	  return img;
-	};
+	var Background = function () {
+	  function Background(options) {
+	    _classCallCheck(this, Background);
 
-	Background.prototype.getStars = function () {
-	  this.starfieldCtx.beginPath();
-	  for (var n = 0; n < 100; n++) {
-	    var coordinates = this.getStarCoordinates();
-	    var x = coordinates.x;
-	    var y = coordinates.y;
-	    var radius = coordinates.radius;
-	    this.starfieldCtx.arc(x, y, radius, 0, Math.PI * 2, false);
-	    this.starfieldCtx.closePath();
+	    this.starfield = options.starfield;
+	    this.starfieldCtx = options.starfieldCtx;
+	    this.canvas = options.canvas;
 	  }
-	  this.starfieldCtx.fillStyle = "white";
-	  this.starfieldCtx.fill();
-	};
 
-	Background.prototype.getStarCoordinates = function () {
-	  var x = parseInt(Math.random() * this.canvas.width);
-	  var y = parseInt(Math.random() * this.canvas.height);
-	  var radius = Math.random() * 3;
-	  return { x: x, y: y, radius: radius };
-	};
+	  _createClass(Background, [{
+	    key: "randomStarsImage",
+	    value: function randomStarsImage() {
+	      this.getStars();
 
-	Background.prototype.clearCanvas = function () {
-	  this.starfieldCtx.clearRect(0, 0, this.starfield.width, this.starfield.height);
-	};
+	      var img = document.createElement("img");
+	      img.src = this.starfield.toDataURL();
+	      return img;
+	    }
+	  }, {
+	    key: "getStars",
+	    value: function getStars() {
+	      this.starfieldCtx.beginPath();
+	      for (var n = 0; n < 100; n++) {
+	        var coordinates = this.getStarCoordinates();
+	        var x = coordinates.x;
+	        var y = coordinates.y;
+	        var radius = coordinates.radius;
+	        this.starfieldCtx.arc(x, y, radius, 0, Math.PI * 2, false);
+	        this.starfieldCtx.closePath();
+	      }
+	      this.starfieldCtx.fillStyle = "white";
+	      this.starfieldCtx.fill();
+	    }
+	  }, {
+	    key: "getStarCoordinates",
+	    value: function getStarCoordinates() {
+	      var x = parseInt(Math.random() * this.canvas.width);
+	      var y = parseInt(Math.random() * this.canvas.height);
+	      var radius = Math.random() * 3;
+	      return { x: x, y: y, radius: radius };
+	    }
+	  }, {
+	    key: "clearCanvas",
+	    value: function clearCanvas() {
+	      this.starfieldCtx.clearRect(0, 0, this.starfield.width, this.starfield.height);
+	    }
+	  }, {
+	    key: "draw",
+	    value: function draw(backgroundImage, offsetLeft) {
+	      this.starfieldCtx.drawImage(backgroundImage, -offsetLeft, 0);
+	      this.starfieldCtx.drawImage(backgroundImage, backgroundImage.width - offsetLeft, 0);
+	    }
+	  }]);
 
-	Background.prototype.draw = function (backgroundImage, offsetLeft) {
-	  this.starfieldCtx.drawImage(backgroundImage, -offsetLeft, 0);
-	  this.starfieldCtx.drawImage(backgroundImage, backgroundImage.width - offsetLeft, 0);
-	};
+	  return Background;
+	}();
 
 	module.exports = Background;
 
@@ -1587,14 +1749,18 @@
 
 	"use strict";
 
-	function Boom(options) {
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Boom = function Boom(options) {
+	  _classCallCheck(this, Boom);
+
 	  this.image = document.getElementById("boom");
 	  this.width = 422;
 	  this.height = 362;
 	  this.x = 140;
 	  this.y = 100;
 	  this.context = options.context || {};
-	}
+	};
 
 	module.exports = Boom;
 
@@ -1622,8 +1788,8 @@
 	// Hot Module Replacement
 	if(false) {
 		// When the styles change, update the <style> tags
-		module.hot.accept("!!/Users/chelseajohnson/Documents/turing/4module/game-time/node_modules/mocha-loader/node_modules/css-loader/index.js!/Users/chelseajohnson/Documents/turing/4module/game-time/node_modules/mocha/mocha.css", function() {
-			var newContent = require("!!/Users/chelseajohnson/Documents/turing/4module/game-time/node_modules/mocha-loader/node_modules/css-loader/index.js!/Users/chelseajohnson/Documents/turing/4module/game-time/node_modules/mocha/mocha.css");
+		module.hot.accept("!!/Users/July/turing/4module/projects/game-time/node_modules/mocha-loader/node_modules/css-loader/index.js!/Users/July/turing/4module/projects/game-time/node_modules/mocha/mocha.css", function() {
+			var newContent = require("!!/Users/July/turing/4module/projects/game-time/node_modules/mocha-loader/node_modules/css-loader/index.js!/Users/July/turing/4module/projects/game-time/node_modules/mocha/mocha.css");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -10127,6 +10293,8 @@
 
 	'use strict';
 
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 	var chai = __webpack_require__(29);
 	var assert = chai.assert;
 
@@ -10141,7 +10309,7 @@
 
 	    it('should make a new sushi or trash object', function () {
 	      var newObject = game.makeObject();
-	      assert.equal(typeof newObject, "object");
+	      assert.equal(typeof newObject === 'undefined' ? 'undefined' : _typeof(newObject), "object");
 	    });
 	  });
 
@@ -10338,6 +10506,8 @@
 
 	'use strict';
 
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 	var chai = __webpack_require__(29);
 	var assert = chai.assert;
 
@@ -10354,9 +10524,9 @@
 
 	  it('gets coordinates for stars', function () {
 	    var coordinates = background.getStarCoordinates();
-	    assert.equal(typeof coordinates.x, "number");
-	    assert.equal(typeof coordinates.y, "number");
-	    assert.equal(typeof coordinates.radius, "number");
+	    assert.equal(_typeof(coordinates.x), "number");
+	    assert.equal(_typeof(coordinates.y), "number");
+	    assert.equal(_typeof(coordinates.radius), "number");
 	  });
 	});
 
